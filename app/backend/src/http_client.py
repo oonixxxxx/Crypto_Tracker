@@ -1,6 +1,8 @@
 from aiohttp import ClientSession
 from .config import settings
 
+#pro-api.coinmarketcap.com
+
 class HTTPClient:
     def __init__(self, base_url: str, api_key: str):
         self.base_url = base_url
@@ -11,10 +13,8 @@ class HTTPClient:
             }
         )
 
-#pro-api.coinmarketcap.com
 
 class CMCHTTPClient(HTTPClient):
-    
     async def get_listings(self):
         async with self.session.get(
             url='/v1/cryptocurrency/listings/latest'
