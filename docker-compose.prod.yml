@@ -1,0 +1,53 @@
+version: '3.8'
+
+services:
+  # FastAPI Backend Service (using GitHub Package)
+  backend:
+    image: ghcr.io/oonixxxxx/crypto_tracker/backend:latest
+    container_name: crypto-tracker-backend
+    ports:
+      - "8000:8000"
+    environment:
+      - CMC_API_KEY=${CMC_API_KEY}
+      - HOST=0.0.0.0
+      - PORT=8000
+      - LOG_LEVEL=INFO
+    networks:
+      - crypto-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Telegram Bot Service (using GitHub Package)
+  bot:
+    image: ghcr.io/oonixxxxx/crypto_tracker/bot:latest
+    container_name: crypto-tracker-bot
+    environment:
+      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
+      - BACKEND_URL=http://backend:8000
+      - REQUEST_TIMEOUT=10
+      - MAX_RETRIES=3
+      - LOG_LEVEL=INFO
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - crypto-network
+    restart: unless-stopped
+
+networks:
+  crypto-network:
+    driver: bridge
+
+# Usage:
+# 1. Create a .env file with your API keys:
+#    CMC_API_KEY=your-coinmarketcap-api-key
+#    TELEGRAM_BOT_TOKEN=your-telegram-bot-token
+#
+# 2. Run with: docker-compose -f docker-compose.prod.yml up -d
+#
+# 3. The images will be automatically pulled from GitHub Container Registry

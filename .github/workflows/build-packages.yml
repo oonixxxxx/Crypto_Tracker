@@ -1,0 +1,89 @@
+name: 📦 Build GitHub Packages (Manual)
+
+on:
+  workflow_dispatch:
+    inputs:
+      version_tag:
+        description: 'Version tag for the packages (e.g., v1.0.0, latest)'
+        required: true
+        default: 'latest'
+        type: string
+
+env:
+  REGISTRY: ghcr.io
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: 📥 Checkout repository
+        uses: actions/checkout@v4
+
+      - name: 🔐 Log in to Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: 🔧 Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: 🏗️ Build and push Backend image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./app
+          file: ./app/Dockerfile
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/${{ github.repository }}/backend:${{ inputs.version_tag }}
+            ${{ env.REGISTRY }}/${{ github.repository }}/backend:latest
+          labels: |
+            org.opencontainers.image.title=Crypto Tracker Backend
+            org.opencontainers.image.description=FastAPI backend for cryptocurrency tracking
+            org.opencontainers.image.url=https://github.com/${{ github.repository }}
+            org.opencontainers.image.source=https://github.com/${{ github.repository }}
+            org.opencontainers.image.version=${{ inputs.version_tag }}
+            org.opencontainers.image.created=${{ github.event.repository.updated_at }}
+            org.opencontainers.image.revision=${{ github.sha }}
+          platforms: linux/amd64,linux/arm64
+
+      - name: 🤖 Build and push Bot image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./app/bot
+          file: ./app/bot/Dockerfile
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/${{ github.repository }}/bot:${{ inputs.version_tag }}
+            ${{ env.REGISTRY }}/${{ github.repository }}/bot:latest
+          labels: |
+            org.opencontainers.image.title=Crypto Tracker Bot
+            org.opencontainers.image.description=Telegram bot for cryptocurrency tracking
+            org.opencontainers.image.url=https://github.com/${{ github.repository }}
+            org.opencontainers.image.source=https://github.com/${{ github.repository }}
+            org.opencontainers.image.version=${{ inputs.version_tag }}
+            org.opencontainers.image.created=${{ github.event.repository.updated_at }}
+            org.opencontainers.image.revision=${{ github.sha }}
+          platforms: linux/amd64,linux/arm64
+
+      - name: 📋 Package Summary
+        run: |
+          echo "## 📦 Packages Built Successfully!" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 🐳 Docker Images Published:" >> $GITHUB_STEP_SUMMARY
+          echo "- **Backend**: \`ghcr.io/${{ github.repository }}/backend:${{ inputs.version_tag }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "- **Bot**: \`ghcr.io/${{ github.repository }}/bot:${{ inputs.version_tag }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 🚀 Quick Start with Packages:" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`bash" >> $GITHUB_STEP_SUMMARY
+          echo "# Pull and run backend" >> $GITHUB_STEP_SUMMARY
+          echo "docker run -p 8000:8000 -e CMC_API_KEY=your-key ghcr.io/${{ github.repository }}/backend:${{ inputs.version_tag }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "# Pull and run bot" >> $GITHUB_STEP_SUMMARY
+          echo "docker run -e TELEGRAM_BOT_TOKEN=your-token -e BACKEND_URL=http://backend:8000 ghcr.io/${{ github.repository }}/bot:${{ inputs.version_tag }}" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
