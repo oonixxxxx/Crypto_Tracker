@@ -1,0 +1,42 @@
+[build-system]
+requires = ["setuptools>=69", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "crypto-tracker-bot"
+version = "0.1.0"
+description = "Crypto Tracker Telegram bot"
+readme = "../../README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [
+    { name = "Your Name", email = "you@example.com" }
+]
+keywords = ["crypto", "telegram", "bot", "aiogram"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+dependencies = [
+    "aiogram==3.2.0",
+    "aiohttp==3.9.1",
+    "pydantic==2.5.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/yourname/crypto_tracker"
+Repository = "https://github.com/yourname/crypto_tracker"
+
+[project.scripts]
+crypto-bot = "app.bot.cli:main"
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["app.bot*"]
+namespaces = true
+
+

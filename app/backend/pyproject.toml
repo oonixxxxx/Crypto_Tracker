@@ -1,0 +1,54 @@
+[build-system]
+requires = ["setuptools>=69", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "crypto-tracker-backend"
+version = "0.1.0"
+description = "Crypto Tracker FastAPI backend"
+readme = "../../README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [
+    { name = "Your Name", email = "you@example.com" }
+]
+keywords = ["crypto", "fastapi", "backend"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+dependencies = [
+    "fastapi==0.104.1",
+    "uvicorn[standard]==0.24.0",
+    "pydantic==2.5.0",
+    "pydantic-settings==2.1.0",
+    "aiohttp==3.9.1",
+    "python-multipart==0.0.6",
+]
+
+[project.urls]
+Homepage = "https://github.com/yourname/crypto_tracker"
+Repository = "https://github.com/yourname/crypto_tracker"
+
+[project.scripts]
+crypto-backend = "app.backend.src.cli:main"
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.packages]
+find = false
+
+[tool.setuptools.package-dir]
+"app.backend" = "."
+"app.backend.src" = "src"
+
+[tool.setuptools.packages.finder]
+namespaces = true
+packages = [
+    "app.backend",
+    "app.backend.src",
+]
+
+
