@@ -328,6 +328,8 @@ docker-compose logs -f bot
 4. Add tests if applicable
 5. Submit a pull request
 
+**📋 See our [ROADMAP.md](ROADMAP.md) for planned features and contribution opportunities!**
+
 ## 📄 License
 
 This project is licensed under the MIT License - see the LICENSE file for details.
