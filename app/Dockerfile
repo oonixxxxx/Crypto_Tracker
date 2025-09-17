@@ -1,16 +1,37 @@
 FROM python:3.9-slim
 
-#рабочая папка
+# Set working directory
 WORKDIR /app
 
-# Установка зависимостей для разработки
-COPY backend/requirements.txt .
-#установка зависимостей
-RUN pip install --no-cache-dir -r requirements.txt
-#установка pytest и pytest-cov
-RUN pip install pytest pytest-cov
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
 
-# Копирование кода приложения
+# Copy requirements first for better caching
+COPY backend/requirements.txt .
+
+# Install Python dependencies
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Install additional development dependencies (optional)
+# RUN pip install pytest pytest-cov pytest-asyncio httpx
+
+# Copy application code
 COPY backend .
-#команда по умолчанию для продакшена
+
+# Create non-root user for security
+RUN useradd --create-home --shell /bin/bash appuser && \
+    chown -R appuser:appuser /app
+
+USER appuser
+
+# Expose port
+EXPOSE 8000
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+  CMD curl -f http://localhost:8000/health || exit 1
+
+# Default command for production
 CMD ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8000"]

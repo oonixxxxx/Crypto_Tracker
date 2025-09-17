@@ -1,0 +1,60 @@
+version: '3.8'
+
+services:
+  # FastAPI Backend Service
+  backend:
+    build:
+      context: ./app
+      dockerfile: Dockerfile
+    container_name: crypto-tracker-backend
+    ports:
+      - "8000:8000"
+    environment:
+      - CMC_API_KEY=${CMC_API_KEY}
+      - HOST=0.0.0.0
+      - PORT=8000
+      - LOG_LEVEL=INFO
+    networks:
+      - crypto-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Telegram Bot Service
+  bot:
+    build:
+      context: ./app/bot
+      dockerfile: Dockerfile
+    container_name: crypto-tracker-bot
+    environment:
+      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
+      - BACKEND_URL=http://backend:8000
+      - REQUEST_TIMEOUT=10
+      - MAX_RETRIES=3
+      - LOG_LEVEL=INFO
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - crypto-network
+    restart: unless-stopped
+
+networks:
+  crypto-network:
+    driver: bridge
+
+# For development, you can override with docker-compose.override.yml
+# Example:
+# services:
+#   backend:
+#     volumes:
+#       - ./app/backend:/app
+#     environment:
+#       - DEBUG=true
+#   bot:
+#     volumes:
+#       - ./app/bot:/app
